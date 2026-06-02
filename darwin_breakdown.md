@@ -146,12 +146,12 @@ happens within each 6B sub-model, and routing happens between them:
 |---|---|---|---|
 | **OmniLance 6B** | 6B | 3B | Paper-exact Darwin merge: Omni 3B + Lance 3B → 3B child, MoE-routed with parent copies |
 | **OmniStep 6B** | 6B | 3B | Paper-exact Darwin merge: Omni 3B + ACE-Step 3B → 3B child, MoE-routed with parent copies |
-| **OmniSenter 12A6B** | 12B | 6B | Hierarchical MoE: routes between OmniLance 6B and OmniStep 6B sub-models (one 6B active per token) |
+| **OmniSenter 6A3B** | 12B | 6B | Hierarchical MoE: routes between OmniLance 6B and OmniStep 6B sub-models (one 6B active per token) |
 
 The naming convention `XAYB` = X total B, Y active B per token.
 The 2-parent merges are named `6B` (6B total = 2 parents of 3B each,
 3B active = one parent routed at the sub-model level). The combined
-OmniSenter is `12A6B` (12B total = two 6B sub-models, 6B active = one
+OmniSenter is `6A3B` (12B total = two 6B sub-models, 6B active = one
 sub-model routed at the top level).
 
 Within each sub-model, the paper-exact Darwin 2-parent weight merge
@@ -246,7 +246,7 @@ the original paper.
 1. **OmniLance 6B** with CMA-ES evolution (paper-faithful, 2-4 hours
    compute, target 4-6/10 on the reasoning benchmark)
 2. **OmniStep 6B** with CMA-ES (Omni + ACE-Step via Mapper)
-3. **OmniSenter 12A6B** as the two-level MoE composition (routes
+3. **OmniSenter 6A3B** as the two-level MoE composition (routes
    between OmniLance 6B and OmniStep 6B sub-models)
 4. **YaRN 1M context** on the best child
 5. **Recursive family evolution** — child N becomes a parent for
@@ -261,7 +261,7 @@ the original paper.
 | ACE-Step LM (parent) | 4B | 4B |
 | **OmniLance 6B** (sub-model) | 6B | 3B |
 | **OmniStep 6B** (sub-model) | 6B | 3B |
-| **OmniSenter 12A6B** (composed) | 12B | 6B |
+| **OmniSenter 6A3B** (composed) | 12B | 6B |
 
 ## References
 
