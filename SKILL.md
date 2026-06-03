@@ -35,7 +35,7 @@ CMA-ES:         evolves the 14-dim genome over 20-50 generations, N=20-50 popula
 
 The merge is a **pure convex combination**. No extra scaling, no random projection, no invented terms.
 
-## Critical pitfalls (compiled from this session)
+## Critical pitfalls (compiled from this session and the OmniSenter project)
 
 ### 1. lm_head extraction
 Parents wrap `lm_head` OUTSIDE the `model.*` prefix:
@@ -47,6 +47,8 @@ Parents wrap `lm_head` OUTSIDE the `model.*` prefix:
 
 ### 2. No random projection for cross-architecture
 When parent dims don't match (e.g., Omni 2048 vs ACE-Step 2560), the paper's Architecture Mapper **SKIPS** dim-mismatched tensors (Comp(i,j) below threshold). Do NOT use a random linear projection to "align" — that introduces noise that destroys the merge.
+
+**Key finding from OmniSenter**: the Architecture Mapper's "skip on dim mismatch" behavior is **protective**, not just a fallback. The cross-arch OmniStep 6B merge (Omni Qwen2 vs ACE-Step Qwen3) achieves 9/10 on the reasoning benchmark because the mapper skips the tensors it can't safely merge. The same-arch OmniLance 6B merge (Omni vs Lance, both Qwen2.5-3B) scores 0/10 because the per-tensor MRI-Trust at 30-70% ratios destroys the learned distributions.
 
 ### 3. No extra scaling
 A common bug: `m = blend * (1 - gamma + gamma * alpha)`. The `(1 - gamma + gamma * alpha)` factor is NOT in the paper. γ, α are genome values that feed into r_final — they are not post-merge scaling. The correct formula is just `(1-r)·A + r·B`.
@@ -66,7 +68,35 @@ Lance 3B and ACE-Step have non-text-LLM tensors that llama.cpp's GGUF converter 
 **Filter these out** before GGUF conversion. See `scripts/filter_for_gguf.py`.
 
 ### 7. Tokenizer files must be copied
-The GGUF converter reads `tokenizer.json`, `tokenizer_config.json`, `vocab.json`, `merges.txt`, `special_tokens_map.json`, `added_tokens.json` from the model directory. They are NOT in safetensors — copy them from the source parent.
+The GGUF converter reads `tokenizer.json`, `tokenizer_config.json`, `vocab.json`, `merges.txt`, `special_tokens_map.json`, `added_tokens.json` from the model directory. They are NOT in safetensors — copy them from the source parent. For per-candidate CMA-ES dirs, copy them after the filter step. Forgetting this gives `TypeError: expected str, bytes or os.PathLike object, not NoneType` in `tokenization_qwen2.py`.
+
+### 8. `save_sharded` must `mkdir` the output dir
+Safetensors' `save_file` does NOT create parent directories. Add `path.mkdir(parents=True, exist_ok=True)` at the top of `save_sharded`, or every per-candidate merge will crash with `SafetensorError: Error while serializing: I/O error: No such file or directory (os error 2)`. The merge looks like it succeeded, but nothing gets written.
+
+### 9. Module-level constants can vanish
+Sibling subagents editing the merge script may delete `GENOME = {...}` at module scope, leaving only `ALPHA_MRI` / `TAU` / `RHO_OMNI` constants. The merge function then references `GENOME` and NameErrors. Before launching CMA-ES, sanity-check that all module-level genome constants are present. Defensive pattern: have `main()` read genome from a JSON file and `global GENOME; GENOME = ...` before calling the merge function.
+
+### 10. CMA-ES ceiling at 3B scale
+With 3B parents and the easy 10-question reasoning benchmark, the fast-bench ceiling (0.800 = 4/5) is hit by every random genome in σ=0.12 around the starting point. All 50 candidates (10 generations × 5 candidates) scored identically. The full 10-question benchmark differentiates them only at 9/10 vs 10/10, which is too fine-grained for CMA-ES to optimize against. To see real CMA-ES improvement, use harder benchmarks (GPQA Diamond, SWE-Bench-Lite) or larger parents. The 3B case is a useful negative result for the paper.
+
+## User preferences for this project (OmniSenter)
+
+When the user says "follow the paper", "do not modify the process", or invokes this skill:
+
+- **Don't ask permission for evolutionary changes.** "All systems go" is the default. Only stop for catastrophic failures (model OOMs, merge crashes that block all candidates, etc.). The user wants momentum, not check-ins.
+- **Render everything in markdown.** The Darwin breakdown doc, the GitHub README, status reports, and skill updates should all be clean markdown. The user shared the doc to other people — it must render well.
+- **GitHub is the source of truth for shared artifacts.** Update the GitHub repo (`SouthpawIN/evolutionary-model-merging`) with corrected content. The user handles sharing on Discord from there. A README with the project visual at the top is the expected format.
+- **Naming convention `XAYB`** = X total params, Y active per token. For 2-parent merges that produce a single dense 3B child, the name is just the parent total (`6B`). For hierarchical MoE compositions of two 6B sub-models, the name is `12A6B` (12B total, 6B active). The user corrected this several times — get it right the first time.
+
+## Naming the OmniSenter family
+
+| Model | Total | Active | Composition |
+|---|---|---|---|
+| **OmniLance 6B** | 6B | 3B | Paper-exact 2-parent Darwin merge: Omni 3B + Lance 3B → 3B child |
+| **OmniStep 6B** | 6B | 3B | Paper-exact 2-parent Darwin merge: Omni 3B + ACE-Step 3B → 3B child |
+| **OmniSenter 6A3B** | 6B active | 3B | Hierarchical MoE: top-level routes between OmniLance 6B and OmniStep 6B sub-models, each sub-model routes within |
+
+The paper-exact *weight merge* happens within each 6B sub-model. The *routing* happens between sub-models at the OmniSenter level. Modality heads (vision, audio, speech, music) attach as separate components, not via weight merging.
 
 ## Workflow (paper-faithful)
 
@@ -134,3 +164,16 @@ When the user says "follow the paper", "do not modify the process", or invokes t
 - `scripts/filter_for_gguf.py` — filter non-text-LLM tensors before GGUF conversion
 - `scripts/real_benchmark.py` — 10-question real-inference benchmark template (vs llama-server :port)
 - `scripts/cma_es_evolution.py` — CMA-ES evolution loop (the paper's actual method)
+
+## Composing with GEPA for the Evolutionary Radio (2026-06-03)
+
+The [[evolutionary-radio]] skill (at `~/.hermes/skills/media/evolutionary-radio/`) composes this methodology with **GEPA prompt evolution** (Agrawal et al., 2025, arXiv:2507.19457) as two independent dimensions of "evolution":
+
+- **Darwin (this skill)** = the model's *weights* evolve over generations. Slow (full merge + eval = hours).
+- **GEPA (see `gepa-prompt-evolution` wiki entity)** = the *prompt template* sent to the model evolves over generations. Fast (LLM-API calls + reflection = minutes).
+
+Both run as concurrent background loops. The primary user-facing fitness signal is **skip rate** (lower = better), with CLAP score and FAD as secondary audio-quality signals.
+
+**Naming convention (2026-06-03):** The system is called "Evolutionary Radio" or "OmniStep Radio". NEVER "jam" or "jamming" — Chris explicitly rejected that term. See `herm-tui-radio` skill pitfall list for the full preference.
+
+When invoked on the OmniSenter project, this skill merges text LLM bodies (Omni, Lance, ACE-Step text encoder, Qwen3) and the new direction merges generative model weights (DiT decoders, VAE, talker). See the wiki entity `generative-darwin-evolution` for the per-modality plan.
