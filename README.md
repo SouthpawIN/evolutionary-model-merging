@@ -155,7 +155,7 @@ The Darwin 14-dim genome and `paper_exact_2parent_merge.py` here are the **evolu
 
 The sparse upcycling (Stage 3) uses the Darwin merge to combine multiple specialized models into a single MoE — see `sparse_upcycle.py` in [multimodal-expansion](https://github.com/SouthpawIN/multimodal-expansion).
 
-Full architecture: [omnisenter-architecture on the wiki](file:///home/sovthpaw/wiki/concepts/omnisenter-architecture.md)
+Full architecture: [omnisenter-architecture on the wiki](the-omnisenter-architecture.md)
 Design post: [OmniSenter: The Self-Evolving Multimodal Auxiliary for Hermes](https://github.com/SouthpawIN/evolutionary-training/blob/master/blog/omnisenter-self-evolving.md)
 
 📚 **Master wiki + blog catalog:** [evolutionary-training/wiki](https://github.com/SouthpawIN/evolutionary-training/blob/master/wiki/README.md) — the consolidated knowledge base for the OmniSenter project, in catalog order.
