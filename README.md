@@ -158,23 +158,4 @@ The sparse upcycling (Stage 3) uses the Darwin merge to combine multiple special
 Full architecture: [omnisenter-architecture on the wiki](file:///home/sovthpaw/wiki/concepts/omnisenter-architecture.md)
 Design post: [OmniSenter: The Self-Evolving Multimodal Auxiliary for Hermes](https://github.com/SouthpawIN/evolutionary-training/blob/master/blog/omnisenter-self-evolving.md)
 
-
----
-
-## Part of the Omni Family
-
-This repo is one of the 6 GitHub repos in the [OmniSenter / Omni Family](https://github.com/SouthpawIN/evolutionary-training/blob/master/blog/the-omni-family.md) project.
-
-**Naming (read first):** [the-omni-family.md](https://github.com/SouthpawIN/evolutionary-training/blob/master/blog/the-omni-family.md) — defines **Omni** (multimodal), **Senter** (agentic core), **Ohm** (self-evolving engine), **Senter Ohm** (the flagship ~32A8B MoE). Every model in the family has a name that composes these suffixes.
-
-**Full blog catalog:** [CATALOG.md](https://github.com/SouthpawIN/evolutionary-training/blob/master/blog/CATALOG.md) — 13 posts covering the architecture, the math, the pipeline, the concepts (Synthesia, Ohm), the integration with Hermes, the notebook schema, and the research direction.
-
-**HuggingFace (transitional v1):** [`sovthpaw/omnistep-12a3b`](https://huggingface.co/sovthpaw/omnistep-12a3b) (12B total / 3B active, multimodal), [`sovthpaw/Omni-Senter-3B`](https://huggingface.co/sovthpaw/Omni-Senter-3B) (3B), [`sovthpaw/OmniSenter-Base-16B`](https://huggingface.co/sovthpaw/OmniSenter-Base-16B) (16B base). These are the v1 lineage — the new architecture (Senter Ohm 32A8B, OmniSenter 12B, OmniSenterStep) will replace them as it ships.
-
-**Sibling repos:**
-- [`SouthpawIN/evolutionary-training`](https://github.com/SouthpawIN/evolutionary-training) — main repo, this blog, training scripts, Ohm runtime
-- [`SouthpawIN/evolutionary-model-merging`](https://github.com/SouthpawIN/evolutionary-model-merging) — Darwin Family (CMA-ES + paper-exact merge)
-- [`SouthpawIN/multimodal-expansion`](https://github.com/SouthpawIN/multimodal-expansion) — REAP + EvoMoE + `sparse_upcycle.py`
-- [`SouthpawIN/omnistep-fusion`](https://github.com/SouthpawIN/omnistep-fusion) — Cosmos × ACE-Step multimodal merge
-- [`SouthpawIN/evolutionary-radio`](https://github.com/SouthpawIN/evolutionary-radio) — OmniStep-brained music radio
-- [`SouthpawIN/hermes-agent`](https://github.com/SouthpawIN/hermes-agent) — the smart agent Senter is auxiliary to
+📚 **Master wiki + blog catalog:** [evolutionary-training/wiki](https://github.com/SouthpawIN/evolutionary-training/blob/master/wiki/README.md) — the consolidated knowledge base for the OmniSenter project, in catalog order.
