@@ -143,3 +143,17 @@ gh repo clone SouthpawIN/evolutionary-model-merging ~/.hermes/skills/mlops/evolu
 - **PDF**: https://arxiv.org/pdf/2605.14386
 - **Project**: OmniSenter (Senter Dev Discord, Nous Research)
 - **Author**: SouthpawIN (Chris)
+
+---
+
+## How this fits the broader OmniSenter architecture
+
+The Darwin 14-dim genome and `paper_exact_2parent_merge.py` here are the **evolution substrate** for the OmniSenter pipeline. Specifically:
+
+- **Stage 2 (Evolutionary Merge)** — `cma_es_evolution.py` here is the engine that searches for optimal merge weights across a population of OmniSenter-8B variants
+- **Ohm (self-evolving model)** — `continuous_evolution.py` in `evolutionary-training` does the same loop *externally*; Ohm internalizes it into the model file itself (`omnisenter_ohm.py` in evolutionary-training/scripts)
+
+The sparse upcycling (Stage 3) uses the Darwin merge to combine multiple specialized models into a single MoE — see `sparse_upcycle.py` in [multimodal-expansion](https://github.com/SouthpawIN/multimodal-expansion).
+
+Full architecture: [omnisenter-architecture on the wiki](file:///home/sovthpaw/wiki/concepts/omnisenter-architecture.md)
+Design post: [OmniSenter: The Self-Evolving Multimodal Auxiliary for Hermes](https://github.com/SouthpawIN/evolutionary-training/blob/master/blog/omnisenter-self-evolving.md)
